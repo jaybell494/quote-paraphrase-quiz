@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quoting, Summarizing & Paraphrasing Quiz</title>
+</head>
+<body style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+
+<style>
+#source-quiz-app * {
+    box-sizing: border-box;
+}
+#source-quiz-app {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    max-width: 900px;
+    margin: 0 auto;
+}
+.source-quiz-option {
+    padding: 20px;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: white;
+    margin-bottom: 15px;
+}
+.source-quiz-option:hover:not(.disabled) {
+    border-color: #667eea;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);
+}
+.source-quiz-option.selected {
+    border-color: #667eea;
+    background: #f5f7ff;
+}
+.source-quiz-option.correct {
+    border-color: #27ae60;
+    background: #f1f8e9;
+}
+.source-quiz-option.incorrect {
+    border-color: #e74c3c;
+    background: #ffebee;
+}
+.source-quiz-option.disabled {
+    cursor: not-allowed;
+}
+.source-option-letter {
+    font-weight: bold;
+    color: #667eea;
+    margin-right: 10px;
+    font-size: 1.1em;
+}
+.source-quiz-option.correct .source-option-letter {
+    color: #27ae60;
+}
+.source-quiz-option.incorrect .source-option-letter {
+    color: #e74c3c;
+}
+.source-quiz-btn {
+    padding: 12px 30px;
+    border: none;
+    border-radius: 25px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+}
+.source-quiz-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+.source-quiz-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+.source-quiz-btn-primary {
+    background: #27ae60;
+    color: white;
+}
+.source-quiz-btn-secondary {
+    background: #e0e0e0;
+    color: #333;
+}
+.source-passage {
+    background: #f8f9fa;
+    padding: 15px;
+    border-left: 4px solid #667eea;
+    border-radius: 5px;
+    margin: 15px 0;
+    font-style: italic;
+    color: #555;
+}
+</style>
+
+<div id="source-quiz-app" style="background: white; border-radius: 20px; padding: 40px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); max-width: 900px; width: 100%; margin: 20px auto;">
+    <div style="text-align: center; margin-bottom: 30px;">
+        <h1 style="color: #2c3e50; font-size: 2.5em; margin-bottom: 10px; font-weight: 600;">📚 Quoting, Summarizing & Paraphrasing Quiz</h1>
+        <p style="color: #666; font-size: 1.1em; margin-bottom: 20px;">Test your knowledge of when and how to use sources in academic writing</p>
+        <div style="width: 100%; height: 8px; background: #e0e0e0; border-radius: 4px; overflow: hidden; margin-bottom: 30px;">
+            <div id="source-progress-fill" style="height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); width: 0%; transition: width 0.5s ease;"></div>
+        </div>
+    </div>
+    <div id="source-quiz-content">
+        <div style="margin-bottom: 30px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <div style="background: #667eea; color: white; padding: 8px 16px; border-radius: 20px; font-weight: 600;">
+                    Question <span id="source-current-question">1</span> of 12
+                </div>
+            </div>
+            <div id="source-question-text" style="font-size: 1.3em; color: #333; margin-bottom: 25px; line-height: 1.5;"></div>
+            <div id="source-options-container" style="display: flex; flex-direction: column;"></div>
+            <div id="source-feedback" style="margin-top: 20px; padding: 20px; border-radius: 10px; display: none;"></div>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-top: 30px; gap: 15px; flex-wrap: wrap;">
+            <button id="source-prev-btn" class="source-quiz-btn source-quiz-btn-secondary">Previous</button>
+            <button id="source-next-btn" class="source-quiz-btn source-quiz-btn-primary">Next Question</button>
+        </div>
+    </div>
+    <div id="source-results-container" style="display: none; text-align: center;">
+        <h2 style="color: #333; font-size: 2em; margin-bottom: 20px;">Quiz Complete!</h2>
+        <div id="source-score-display" style="font-size: 3em; color: #27ae60; margin: 20px 0; font-weight: bold;">0/12</div>
+        <div id="source-score-message" style="font-size: 1.3em; color: #333; margin-bottom: 30px;"></div>
+        <button id="source-restart-btn" class="source-quiz-btn source-quiz-btn-primary" style="font-size: 1.2em; padding: 15px 40px;">Take Quiz Again</button>
+    </div>
+</div>
+
+<script>
+(function() {
+    'use strict';
+    
+    const quizData = [
+        {
+            question: "When should you choose to QUOTE a source directly?",
+            options: [
+                "When the passage is long and contains general information",
+                "When the exact wording is important, such as precise statistics or powerful language",
+                "When you want to save time by not paraphrasing",
+                "Whenever you use any information from a source"
+            ],
+            correct: 1,
+            explanation: "You should quote when the exact wording matters—such as precise statistics, powerful language, or when the specific phrasing is essential to the meaning. Not everything needs to be quoted; paraphrasing is often better for general information."
+        },
+        {
+            question: "Why would you quote this statement: 'Approximately 20% of children living in the United States experience a mental health problem severe enough to require treatment, yet 80% never access services'?",
+            options: [
+                "Because it's from a published source",
+                "Because the precise statistics (20% and 80%) are the key value and create a stark, impactful contrast",
+                "Because it's easier than paraphrasing",
+                "Because all statistics must be quoted"
+            ],
+            correct: 1,
+            explanation: "The precise statistics are the key value here, and they're presented concisely and clearly. The stark contrast between 20% and 80% is impactful as stated. These exact numbers are what make the point powerful."
+        },
+        {
+            question: "When should you PARAPHRASE instead of quoting?",
+            options: [
+                "When the source material is wordy or complex and you can express the idea more clearly",
+                "When you disagree with the source",
+                "Only when the professor requires it",
+                "Never—quoting is always better"
+            ],
+            correct: 0,
+            explanation: "Paraphrase when the original is wordy or uses complex/abstract language that you can express more clearly. Paraphrasing lets you focus on key information and integrate sources smoothly into your own writing voice."
+        },
+        {
+            question: "Look at this original passage: 'The perspective of literacy as part of situated social practice, therefore, means not just talking to students about their personal histories but encouraging learners to explore collectively the broader context in which literacy is used.' Why should this be paraphrased rather than quoted?",
+            options: [
+                "It's too short to quote",
+                "The academic writing uses abstract, complex phrasing that can be made clearer without losing conceptual depth",
+                "The author is not well-known",
+                "It contains no statistics"
+            ],
+            correct: 1,
+            explanation: "Academic writing often uses abstract or complex phrasing. A paraphrase makes it easier to read and understand without losing conceptual depth. The dense term 'social practice' can be unpacked into clearer description while maintaining the meaning."
+        },
+        {
+            question: "Which of the following is an effective paraphrase of: 'Literacy involves more than reading and writing skills'?",
+            options: [
+                "'Literacy involves more than just reading and writing skills.'",
+                "Literacy is about reading and writing.",
+                "Being literate means you can use language in social and cultural contexts, not just decode words.",
+                "Literacy is more than reading and writing."
+            ],
+            correct: 2,
+            explanation: "An effective paraphrase significantly changes the sentence structure and wording while preserving the meaning. Option C unpacks the concept fully, explaining what 'more than' means. Options A and D are too similar to the original (just minor word changes), and B oversimplifies."
+        },
+        {
+            question: "What is SUMMARIZING?",
+            options: [
+                "Copying a source word-for-word with quotation marks",
+                "Condensing a longer passage into a brief overview of the main ideas in your own words",
+                "Rewriting a source sentence-by-sentence",
+                "Adding your own opinion to a source"
+            ],
+            correct: 1,
+            explanation: "Summarizing means condensing longer material into a brief overview that captures only the main ideas, written in your own words. It's different from paraphrasing (which maintains similar length) and quoting (which uses exact words)."
+        },
+        {
+            question: "A student writes: 'Russell Brand says that drug addicts and alcoholics are wholly irrational until you understand they are completely powerless over their addiction.' What is the problem with this paraphrase?",
+            options: [
+                "It needs a citation",
+                "It's too similar to the original wording—it keeps phrases like 'wholly irrational' and 'completely powerless' without quotation marks",
+                "It mentions the author's name",
+                "It's too short"
+            ],
+            correct: 1,
+            explanation: "This is problematic because it keeps distinctive phrases from the original ('wholly irrational,' 'completely powerless') without quotation marks. When you paraphrase, you must genuinely rewrite in your own words. If you keep unique phrases, you need quotation marks around them."
+        },
+        {
+            question: "Why would you paraphrase a personal anecdote like: 'As a child, one of my biggest motivations to read was to play the card and video game called Pokémon. Pokémon was the newest, coolest game on the block, thus everyone was playing it'?",
+            options: [
+                "Personal anecdotes should never be used in academic writing",
+                "Personal anecdotes can be summarized for academic use, keeping the insight but dropping unnecessary informal details",
+                "To make it longer and more detailed",
+                "To avoid giving credit to the original author"
+            ],
+            correct: 1,
+            explanation: "Personal anecdotes can be summarized for academic use, keeping the insight (motivation from popular games) but dropping unnecessary informal details ('coolest game on the block'). First-person storytelling is typically turned into third-person academic reference."
+        },
+        {
+            question: "Which statement is TRUE about using sources?",
+            options: [
+                "You must quote every piece of information from a source",
+                "Paraphrasing means changing one or two words from the original sentence",
+                "Both quotes and paraphrases require citations to give credit to the original author",
+                "Summarizing doesn't require citations because you're using your own words"
+            ],
+            correct: 2,
+            explanation: "Both quotes and paraphrases require citations! Even when you put ideas in your own words (paraphrase or summary), you must cite the source because the ideas still come from someone else. Only your own original ideas don't need citations."
+        },
+        {
+            question: "Look at this paraphrase: 'Roughly five percent of children experience serious mental health conditions, such as depression or behavioral disorders, that disrupt daily functioning. Research suggests these problems are becoming increasingly severe.' What makes this an effective paraphrase?",
+            options: [
+                "It uses quotation marks around key phrases",
+                "It copies the original sentence structure",
+                "It merges several ideas into clear sentences, uses natural phrasing, provides examples, and notes trends succinctly",
+                "It's exactly the same length as the original"
+            ],
+            correct: 2,
+            explanation: "This is effective because it condenses multiple statistics and examples into two clear sentences, replaces exact phrases with natural academic phrasing ('roughly five percent' instead of '5%'), provides helpful examples, and notes the rising trend succinctly—all while maintaining the original meaning."
+        },
+        {
+            question: "When would you quote: 'The mentality and behavior of drug addicts and alcoholics is wholly irrational until you understand that they are completely powerless over their addiction and unless they have structured help, they have no hope'?",
+            options: [
+                "Because it contains statistics",
+                "Because it's a strong, definitive statement that could be controversial, and the exact wording preserves the author's forceful language and specific perspective",
+                "Because it's too difficult to paraphrase",
+                "Because it's from a book"
+            ],
+            correct: 1,
+            explanation: "This is a strong, definitive statement about addiction that could be controversial. The exact wording preserves the author's specific perspective and the forceful language ('wholly irrational,' 'completely powerless,' 'no hope'). When language is this distinctive and impactful, quoting preserves the power and specificity of the claim."
+        },
+        {
+            question: "A student paraphrases: 'About 5% of kids have mental health problems that need treatment.' The original said: 'Approximately 5% of children and adolescents have a severe mental health disorder requiring clinical intervention.' What's the main issue?",
+            options: [
+                "The paraphrase is too informal ('kids' instead of 'children and adolescents') and loses important precision ('severe disorder requiring clinical intervention' becomes vague 'problems that need treatment')",
+                "The paraphrase is too short",
+                "The paraphrase needs quotation marks",
+                "The paraphrase changes the percentage"
+            ],
+            correct: 0,
+            explanation: "While paraphrasing requires rewording, you must maintain the appropriate academic tone and preserve important precision. 'Kids' is too informal for academic writing ('children' or 'children and adolescents' is better), and 'problems that need treatment' is too vague compared to 'severe mental health disorder requiring clinical intervention.' Your paraphrase should match the formality level of your paper."
+        }
+    ];
+
+    let currentQuestion = 0;
+    let score = 0;
+    let userAnswers = new Array(quizData.length).fill(null);
+
+    const questionText = document.getElementById('source-question-text');
+    const optionsContainer = document.getElementById('source-options-container');
+    const feedback = document.getElementById('source-feedback');
+    const currentQuestionSpan = document.getElementById('source-current-question');
+    const prevBtn = document.getElementById('source-prev-btn');
+    const nextBtn = document.getElementById('source-next-btn');
+    const progressFill = document.getElementById('source-progress-fill');
+    const quizContent = document.getElementById('source-quiz-content');
+    const resultsContainer = document.getElementById('source-results-container');
+    const scoreDisplay = document.getElementById('source-score-display');
+    const scoreMessage = document.getElementById('source-score-message');
+    const restartBtn = document.getElementById('source-restart-btn');
+
+    function loadQuestion() {
+        const question = quizData[currentQuestion];
+        questionText.innerHTML = question.question;
+        currentQuestionSpan.textContent = currentQuestion + 1;
+        
+        optionsContainer.innerHTML = '';
+        feedback.style.display = 'none';
+        
+        const letters = ['A', 'B', 'C', 'D'];
+        question.options.forEach(function(option, index) {
+            const optionDiv = document.createElement('div');
+            optionDiv.className = 'source-quiz-option';
+            optionDiv.innerHTML = '<span class="source-option-letter">' + letters[index] + '.</span> ' + option;
+            
+            if (userAnswers[currentQuestion] !== null) {
+                optionDiv.classList.add('disabled');
+                if (index === question.correct) {
+                    optionDiv.classList.add('correct');
+                }
+                if (index === userAnswers[currentQuestion] && index !== question.correct) {
+                    optionDiv.classList.add('incorrect');
+                }
+                if (index === userAnswers[currentQuestion]) {
+                    optionDiv.classList.add('selected');
+                }
+            } else {
+                optionDiv.addEventListener('click', function() { selectOption(index); });
+            }
+            
+            optionsContainer.appendChild(optionDiv);
+        });
+
+        if (userAnswers[currentQuestion] !== null) {
+            showFeedback();
+        }
+
+        updateProgress();
+        updateButtons();
+    }
+
+    function selectOption(index) {
+        if (userAnswers[currentQuestion] !== null) return;
+        
+        userAnswers[currentQuestion] = index;
+        const question = quizData[currentQuestion];
+        
+        if (index === question.correct) {
+            score++;
+        }
+
+        const options = optionsContainer.querySelectorAll('.source-quiz-option');
+        options.forEach(function(option) {
+            option.classList.add('disabled');
+            option.style.pointerEvents = 'none';
+        });
+
+        options[index].classList.add('selected');
+        options[question.correct].classList.add('correct');
+        
+        if (index !== question.correct) {
+            options[index].classList.add('incorrect');
+        }
+
+        showFeedback();
+        updateButtons();
+    }
+
+    function showFeedback() {
+        const question = quizData[currentQuestion];
+        const userAnswer = userAnswers[currentQuestion];
+        
+        if (userAnswer === null) return;
+
+        const isCorrect = userAnswer === question.correct;
+        feedback.style.display = 'block';
+        
+        if (isCorrect) {
+            feedback.style.background = '#e8f5e8';
+            feedback.style.color = '#2e7d32';
+            feedback.style.border = '2px solid #27ae60';
+        } else {
+            feedback.style.background = '#ffebee';
+            feedback.style.color = '#c62828';
+            feedback.style.border = '2px solid #e74c3c';
+        }
+        
+        feedback.innerHTML = '<div style="font-weight: bold; font-size: 1.1em; margin-bottom: 10px;">' + 
+            (isCorrect ? '✓ Correct!' : '✗ Incorrect') + 
+            '</div><div style="line-height: 1.6;">' + question.explanation + '</div>';
+    }
+
+    function updateProgress() {
+        const progress = ((currentQuestion + 1) / quizData.length) * 100;
+        progressFill.style.width = progress + '%';
+    }
+
+    function updateButtons() {
+        prevBtn.disabled = currentQuestion === 0;
+        
+        if (currentQuestion === quizData.length - 1) {
+            nextBtn.textContent = 'View Results';
+        } else {
+            nextBtn.textContent = 'Next Question';
+        }
+    }
+
+    function nextQuestion() {
+        if (currentQuestion < quizData.length - 1) {
+            currentQuestion++;
+            loadQuestion();
+        } else {
+            showResults();
+        }
+    }
+
+    function prevQuestion() {
+        if (currentQuestion > 0) {
+            currentQuestion--;
+            loadQuestion();
+        }
+    }
+
+    function showResults() {
+        quizContent.style.display = 'none';
+        resultsContainer.style.display = 'block';
+        
+        scoreDisplay.textContent = score + '/' + quizData.length;
+        
+        const percentage = (score / quizData.length) * 100;
+        let message = '';
+        
+        if (percentage === 100) {
+            message = '🎉 Perfect score! You\'ve mastered quoting, summarizing, and paraphrasing!';
+        } else if (percentage >= 80) {
+            message = '🌟 Great job! You have a strong understanding of how to use sources!';
+        } else if (percentage >= 60) {
+            message = '👍 Good work! Review the feedback to strengthen your understanding.';
+        } else {
+            message = '📚 Keep studying! Review the materials on quoting and paraphrasing and try again.';
+        }
+        
+        scoreMessage.textContent = message;
+    }
+
+    function restartQuiz() {
+        currentQuestion = 0;
+        score = 0;
+        userAnswers = new Array(quizData.length).fill(null);
+        quizContent.style.display = 'block';
+        resultsContainer.style.display = 'none';
+        loadQuestion();
+    }
+
+    if (prevBtn) prevBtn.addEventListener('click', prevQuestion);
+    if (nextBtn) nextBtn.addEventListener('click', nextQuestion);
+    if (restartBtn) restartBtn.addEventListener('click', restartQuiz);
+
+    // Initialize quiz
+    loadQuestion();
+})();
+</script>
+
+</body>
+</html>
